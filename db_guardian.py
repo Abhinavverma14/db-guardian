@@ -1,9 +1,13 @@
+
 import psycopg2
 import subprocess
-from datetime import datetime
 import os
 import sys
 
+from src.watcher.query_logger import log_query
+from src.detector.query_detector import is_dangerous
+from src.snapshot.snapshot_manager import create_snapshot
+from src.ml.anomaly_detector import is_anomalous
 
 SNAPSHOT_DIR = "snapshots"
 DB_NAME = "dbguardian_db"
@@ -11,33 +15,22 @@ DB_USER = "postgres"
 DB_PASSWORD = "postgres"
 
 
-def is_dangerous_query(query: str) -> bool:
-    query = query.lower().strip()
-    return query.startswith("delete") and "where" not in query
-
-
-def take_snapshot():
-    if not os.path.exists(SNAPSHOT_DIR):
-        os.makedirs(SNAPSHOT_DIR)
-
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    snapshot_file = f"{SNAPSHOT_DIR}/snapshot_{timestamp}.sql"
-
-    print(f"📸 Taking snapshot: {snapshot_file}")
-
-    command = ["pg_dump", "-U", DB_USER, DB_NAME]
-
-    with open(snapshot_file, "w") as f:
-        subprocess.run(command, stdout=f)
-
-    print("✅ Snapshot created successfully")
-
-
 def execute_query(query: str):
-    if is_dangerous_query(query):
-        print("⚠️  Dangerous query detected!")
-        take_snapshot()
+
+    # Rule-based dangerous query detection
+    if is_dangerous(query):
+        print("⚠️ Dangerous query detected!")
+        snap = create_snapshot()
+        print(f"📸 Snapshot created: {snap}")
         print("❌ Query execution blocked by DB-Guardian")
+        return
+
+    # ML anomaly detection
+    if is_anomalous(len(query)):
+        print("⚠️ ML detected unusual query behavior!")
+        snap = create_snapshot()
+        print(f"📸 Snapshot created: {snap}")
+        print("❌ Query execution blocked (ML anomaly)")
         return
 
     try:
@@ -47,12 +40,21 @@ def execute_query(query: str):
             user=DB_USER,
             password=DB_PASSWORD
         )
+
         cur = conn.cursor()
         cur.execute(query)
         conn.commit()
+
+        log_query(query)
+# Retrain model periodically (simple trigger)
+subprocess.run(["python", "src/ml/train_model.py"])
+
+
         cur.close()
         conn.close()
+
         print("✅ Query executed successfully")
+
     except Exception as e:
         print("Execution failed:", e)
 
@@ -66,7 +68,6 @@ def restore_snapshot(snapshot_name: str):
 
     print(f"♻️ Restoring snapshot: {snapshot_name}")
 
-    # Terminate active connections
     subprocess.run([
         "psql", "-U", DB_USER, "-d", "postgres",
         "-c", f"""
@@ -76,11 +77,9 @@ def restore_snapshot(snapshot_name: str):
         """
     ])
 
-    # Drop and recreate database
     subprocess.run(["dropdb", "-U", DB_USER, DB_NAME])
     subprocess.run(["createdb", "-U", DB_USER, DB_NAME])
 
-    # Restore snapshot
     subprocess.run([
         "psql", "-U", DB_USER, "-d", DB_NAME,
         "-f", snapshot_path
@@ -94,7 +93,7 @@ def main():
         restore_snapshot(sys.argv[2])
         return
 
-    print("DB-Guardian active with snapshot protection\n")
+    print("DB-Guardian active (AI + modular protection)\n")
     query = input("Enter SQL query: ")
     execute_query(query)
 
