@@ -6,6 +6,12 @@ app = Flask(__name__)
 
 LOG_FILE = "../logs/query_log.json"
 
+# sample data initialization
+if not os.path.exists(LOG_FILE):
+    sample_logs = [...]
+    with open(LOG_FILE, "w") as f:
+        json.dump(sample_logs, f)
+
 @app.route("/")
 def index():
     return render_template("index.html")
