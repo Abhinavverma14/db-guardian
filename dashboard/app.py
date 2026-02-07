@@ -4,36 +4,47 @@ import os
 
 app = Flask(__name__)
 
-LOG_FILE = "../logs/query_log.json"
+LOG_FILE = "query_log.json"
 
-# sample data initialization
+# ---------- Create sample logs if not exist ----------
 if not os.path.exists(LOG_FILE):
-    sample_logs = [...]
+    sample_logs = [
+        {"time": "10:30", "query": "DROP TABLE users", "status": "Blocked"},
+        {"time": "10:32", "query": "SELECT * FROM accounts", "status": "Safe"},
+        {"time": "10:35", "query": "DELETE FROM payments", "status": "Blocked"}
+    ]
     with open(LOG_FILE, "w") as f:
         json.dump(sample_logs, f)
 
+
 @app.route("/")
-def index():
+def home():
     return render_template("index.html")
 
+
+# ---------- Logs API ----------
 @app.route("/api/logs")
 def get_logs():
-    if os.path.exists(LOG_FILE):
-        with open(LOG_FILE) as f:
-            data = json.load(f)
-    else:
-        data = []
-
+    with open(LOG_FILE) as f:
+        data = json.load(f)
     return jsonify(data)
-@app.route("/live_logs")
-def live_logs():
-    if os.path.exists(LOG_FILE):
-        with open(LOG_FILE) as f:
-            data = json.load(f)
-    else:
-        data = []
 
-    return jsonify(data)
+
+# ---------- Stats API ----------
+@app.route("/api/stats")
+def get_stats():
+    with open(LOG_FILE) as f:
+        data = json.load(f)
+
+    total = len(data)
+    blocked = sum(1 for x in data if x["status"] == "Blocked")
+    snapshots = 3  # demo value
+
+    return jsonify({
+        "total": total,
+        "blocked": blocked,
+        "snapshots": snapshots
+    })
 
 
 if __name__ == "__main__":

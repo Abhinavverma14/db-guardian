@@ -1,31 +1,36 @@
 async function loadDashboard() {
-    try {
-        const response = await fetch("/live_logs");
-        const data = await response.json();
+    const res = await fetch("/api/logs");
+    const data = await res.json();
 
-        const logTable = document.getElementById("log-body");
+    const tbody = document.getElementById("log-body");
+    tbody.innerHTML = "";
 
-        logTable.innerHTML = "";
-
-        data.forEach(log => {
-            const row = `
-                <tr>
-                    <td>${log.time}</td>
-                    <td>${log.query}</td>
-                    <td>${log.status}</td>
-                    <td><button class="btn-view">View</button></td>
-                </tr>
-            `;
-            logTable.innerHTML += row;
-        });
-
-    } catch (error) {
-        console.error("Error loading dashboard:", error);
-    }
+    data.forEach(log => {
+        const row = `
+        <tr>
+            <td>${log.time}</td>
+            <td>${log.query}</td>
+            <td>${log.status}</td>
+            <td><button class="view-btn">View</button></td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
 }
 
-/* realtime refresh every 5 seconds */
-setInterval(loadDashboard, 5000);
+async function loadStats() {
+    const res = await fetch("/api/stats");
+    const data = await res.json();
 
-/* first load immediately */
+    document.getElementById("total-count").innerText = data.total;
+    document.getElementById("blocked-count").innerText = data.blocked;
+    document.getElementById("snapshot-count").innerText = data.snapshots;
+}
+
+/* realtime refresh */
+setInterval(() => {
+    loadDashboard();
+    loadStats();
+}, 5000);
+
 loadDashboard();
+loadStats();
