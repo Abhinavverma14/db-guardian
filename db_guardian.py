@@ -1,13 +1,13 @@
-
 import psycopg2
 import subprocess
+from datetime import datetime
 import os
 import sys
 
-from src.watcher.query_logger import log_query
 from src.detector.query_detector import is_dangerous
 from src.snapshot.snapshot_manager import create_snapshot
 from src.ml.anomaly_detector import is_anomalous
+from src.ml.explanation_generator import generate_explanation
 
 SNAPSHOT_DIR = "snapshots"
 DB_NAME = "dbguardian_db"
@@ -17,22 +17,41 @@ DB_PASSWORD = "postgres"
 
 def execute_query(query: str):
 
-    # Rule-based dangerous query detection
+    # Rule-based dangerous detection
     if is_dangerous(query):
         print("⚠️ Dangerous query detected!")
+
         snap = create_snapshot()
+
+        explanation = generate_explanation(
+            "A destructive SQL operation such as DELETE without WHERE clause was detected."
+        )
+
         print(f"📸 Snapshot created: {snap}")
+        print("\nExplanation:")
+        print(explanation)
+
         print("❌ Query execution blocked by DB-Guardian")
         return
 
     # ML anomaly detection
     if is_anomalous(len(query)):
         print("⚠️ ML detected unusual query behavior!")
+
         snap = create_snapshot()
+
+        explanation = generate_explanation(
+            "An unusual SQL query pattern was detected by the anomaly detection model."
+        )
+
         print(f"📸 Snapshot created: {snap}")
+        print("\nExplanation:")
+        print(explanation)
+
         print("❌ Query execution blocked (ML anomaly)")
         return
 
+    # Normal execution
     try:
         conn = psycopg2.connect(
             host="localhost",
@@ -45,11 +64,6 @@ def execute_query(query: str):
         cur.execute(query)
         conn.commit()
 
-        log_query(query)
-# Retrain model periodically (simple trigger)
-subprocess.run(["python", "src/ml/train_model.py"])
-
-
         cur.close()
         conn.close()
 
@@ -60,6 +74,7 @@ subprocess.run(["python", "src/ml/train_model.py"])
 
 
 def restore_snapshot(snapshot_name: str):
+
     snapshot_path = os.path.join(SNAPSHOT_DIR, snapshot_name)
 
     if not os.path.exists(snapshot_path):
@@ -70,11 +85,8 @@ def restore_snapshot(snapshot_name: str):
 
     subprocess.run([
         "psql", "-U", DB_USER, "-d", "postgres",
-        "-c", f"""
-        SELECT pg_terminate_backend(pid)
-        FROM pg_stat_activity
-        WHERE datname = '{DB_NAME}';
-        """
+        "-c",
+        f"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{DB_NAME}';"
     ])
 
     subprocess.run(["dropdb", "-U", DB_USER, DB_NAME])
@@ -89,11 +101,13 @@ def restore_snapshot(snapshot_name: str):
 
 
 def main():
+
     if len(sys.argv) == 3 and sys.argv[1] == "--restore":
         restore_snapshot(sys.argv[2])
         return
 
     print("DB-Guardian active (AI + modular protection)\n")
+
     query = input("Enter SQL query: ")
     execute_query(query)
 

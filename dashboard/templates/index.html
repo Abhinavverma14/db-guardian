@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DB-Guardian Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>DB-Guardian Dashboard</h1>
+    <p class="subtitle">Real-time database safety monitoring</p>
+
+    <div class="system-status">● System Active</div>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="card">
+            <h2 id="totalQueries">0</h2>
+            <p>Total Queries Monitored</p>
+        </div>
+
+        <div class="card">
+            <h2 id="dangerQueries" class="danger">0</h2>
+            <p>Dangerous Queries Blocked</p>
+        </div>
+
+        <div class="card">
+            <h2 id="snapshots">0</h2>
+            <p>Snapshots Created</p>
+        </div>
+    </div>
+
+    <!-- Activity Log -->
+    <h2>Activity Log</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Query</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+       <tbody id="log-body"></tbody>
+
+<span id="total-count"></span>
+<span id="blocked-count"></span>
+<span id="snapshot-count"></span>
+
+<section id="incident-section">
+<p id="incident-query"></p>
+<p id="incident-status"></p>
+<p id="incident-ai"></p>
+</section>
+
+<div id="toast" class="toast hidden">
+    <span id="toast-text"></span>
+</div>
+
+    </table>
+
+    <!-- Snapshot -->
+    <h2>Snapshot Restore</h2>
+    <div id="snapshot-box">
+        snapshot_1.sql <button class="restore-btn">Restore Snapshot</button><br>
+        snapshot_2.sql <button class="restore-btn">Restore Snapshot</button>
+    </div>
+
+    <!-- Incident Explanation -->
+    <h2>Incident Explanation</h2>
+
+    <div id="incident-section" class="incident-box">
+        <p><b>Query:</b> <span id="incident-query">---</span></p>
+        <p><b>Status:</b> <span id="incident-status">---</span></p>
+        <p><b>AI Analysis:</b> <span id="incident-analysis">---</span></p>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<div id="toast" class="toast hidden">
+    <span id="toast-text">Alert</span>
+</div>
+
+</body>
+</html>

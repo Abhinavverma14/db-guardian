@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DB Guardian
 
 
@@ -32,6 +33,15 @@ User Query → Query Detector → ML Anomaly Detector → Snapshot Manager → D
 - Dangerous queries trigger automatic snapshot creation
 - Suspicious queries can be blocked and logged
 - Snapshots allow instant point-in-time database recovery
+=======
+\# DB-Guardian — AI-Powered Database Safety Layer
+
+
+
+DB-Guardian is a real-time intelligent middleware that prevents accidental or malicious destructive SQL operations by combining rule-based detection, automatic snapshot recovery, and machine-learning anomaly detection.
+
+
+>>>>>>> 87528e6 (deployment ready)
 
 
 
@@ -62,6 +72,4 @@ Accidental destructive queries such as DELETE without WHERE clauses can cause ir
 - Cloud snapshot storage (AWS S3)
 - Multi-database support (MySQL / MongoDB)
 - Real-time production deployment using Docker
-
-
 
