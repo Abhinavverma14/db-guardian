@@ -1,3 +1,4 @@
+/* ---------- Load Logs Table ---------- */
 async function loadDashboard() {
     const res = await fetch("/api/logs");
     const data = await res.json();
@@ -6,17 +7,46 @@ async function loadDashboard() {
     tbody.innerHTML = "";
 
     data.forEach(log => {
+
         const row = `
         <tr>
             <td>${log.time}</td>
             <td>${log.query}</td>
             <td>${log.status}</td>
-            <td><button class="view-btn">View</button></td>
-        </tr>`;
+            <td>
+                <button class="view-btn"
+                    onclick="showIncident('${log.query}','${log.status}')">
+                    View
+                </button>
+            </td>
+        </tr>
+        `;
+
         tbody.innerHTML += row;
     });
 }
 
+
+/* ---------- Incident Explanation ---------- */
+function showIncident(query,status){
+
+    document.getElementById("incident-query").innerText = query;
+    document.getElementById("incident-status").innerText = status;
+
+    if(status === "Blocked"){
+        document.getElementById("incident-ai").innerText =
+        "This query was detected as potentially destructive and blocked automatically.";
+    }else{
+        document.getElementById("incident-ai").innerText =
+        "This query is safe and does not pose a database risk.";
+    }
+
+    document.getElementById("incident-section")
+        .scrollIntoView({behavior:"smooth"});
+}
+
+
+/* ---------- Load Stats ---------- */
 async function loadStats() {
     const res = await fetch("/api/stats");
     const data = await res.json();
@@ -26,7 +56,8 @@ async function loadStats() {
     document.getElementById("snapshot-count").innerText = data.snapshots;
 }
 
-/* realtime refresh */
+
+/* ---------- Realtime Refresh ---------- */
 setInterval(() => {
     loadDashboard();
     loadStats();
