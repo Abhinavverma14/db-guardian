@@ -69,6 +69,10 @@ function showToast(message){
 
 
 /* realtime refresh every 5 seconds */
-setInterval(loadDashboard,5000);
-
-loadDashboard();
+setInterval(() => {
+    fetch('/live_logs')
+        .then(res => res.json())
+        .then(data => {
+            updateDashboard(data);
+        });
+}, 5000);

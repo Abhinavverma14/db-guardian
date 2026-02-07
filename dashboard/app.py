@@ -19,6 +19,16 @@ def get_logs():
         data = []
 
     return jsonify(data)
+@app.route("/live_logs")
+def live_logs():
+    if os.path.exists(LOG_FILE):
+        with open(LOG_FILE) as f:
+            data = json.load(f)
+    else:
+        data = []
+
+    return jsonify(data)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
