@@ -1,3 +1,7 @@
+import threading
+import time
+import random
+
 from flask import Flask, render_template, jsonify
 import json
 import os
@@ -15,6 +19,40 @@ if not os.path.exists(LOG_FILE):
     ]
     with open(LOG_FILE, "w") as f:
         json.dump(sample_logs, f)
+
+
+def generate_demo_logs():
+    queries = [
+        ("SELECT * FROM users", "Safe"),
+        ("UPDATE accounts SET balance=100", "Safe"),
+        ("DELETE FROM users", "Blocked"),
+        ("DROP TABLE payments", "Blocked"),
+        ("INSERT INTO orders VALUES(...)", "Safe"),
+    ]
+
+    while True:
+        time.sleep(10)
+
+        if os.path.exists(LOG_FILE):
+            with open(LOG_FILE) as f:
+                data = json.load(f)
+        else:
+            data = []
+
+        q, status = random.choice(queries)
+
+        data.append({
+            "time": time.strftime("%H:%M:%S"),
+            "query": q,
+            "status": status
+        })
+
+        with open(LOG_FILE, "w") as f:
+            json.dump(data, f)
+
+
+# start background simulator
+threading.Thread(target=generate_demo_logs, daemon=True).start()
 
 
 @app.route("/")
