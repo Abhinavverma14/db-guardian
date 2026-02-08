@@ -53,7 +53,7 @@ Accidental destructive queries such as DELETE without WHERE clauses can cause ir
 
 ## Future Scope
 
-- Web dashboard for monitoring queries and snapshots
+- Supervised SQL anomaly detection models (Logistic Regression / NLP classifiers)
 - Cloud snapshot storage (AWS S3)
 - Multi-database support (MySQL / MongoDB)
 - Real-time production deployment using Docker
