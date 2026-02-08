@@ -2,12 +2,7 @@
 # DB Guardian
 
 
-DB-Guardian is an AI-powered database safety middleware that prevents accidental
-data loss by detecting destructive SQL queries, performing automatic database
-snapshots, and enabling one-command disaster recovery.
-
-The system integrates rule-based query detection, machine-learning anomaly
-detection, and automated PostgreSQL backup/restore pipelines.
+DB-Guardian is a real-time database activity monitoring platform that analyzes SQL queries, detects potentially dangerous operations, and visualizes system activity through a live web dashboard. The system streams query logs via backend APIs, updates dashboard metrics in real time, and provides incident-explanation and recovery-workflow simulation features. Designed with a modular architecture, DB-Guardian can be extended with supervised machine-learning anomaly detection models for enterprise-grade database security monitoring.
 
 
 
